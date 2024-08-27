@@ -14,15 +14,15 @@ bots:
       - source: "path/to/host/directory"
         target: "path/to/container/directory"
         createHostPath: true
+    publish:
+      key: "distributed_orders"
+      order: "execute_order"
     lifecycle:
       type: proactive
       initialDelay: 60
       period: 60
     environment:
       - KEY=VALUE
-    publish:
-      key: "publish_key"
-      order: "execute_order"
     instances:
       bot-1: { }
       bot-2: { }
@@ -39,13 +39,17 @@ bots:
 
   my-other-bot:
     image: "my-other-bot-image"
-    lifecycle:
-      type: reactive
-      keys: [ "publish_key" ]
-      order: "execute_order"
     publish:
       key: "another_key"
       order: "execute_the_other_order"
+    subscribe:
+      - key: "distributed_orders"
+        strategy: distributed # will be delivered to only one random instance
+      - key: "broadcast_orders"
+        strategy: broadcast # will be delivered to all instances
+    lifecycle:
+      type: reactive
+      order: "execute_order"
     instances:
       bot-5: { }
       bot-6: { }
