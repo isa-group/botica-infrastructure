@@ -1,22 +1,21 @@
-# Check https://github.com/isa-group/botica/wiki/The-main-configuration-file for a complete guide.
+# This is an example configuration file.
+
+# Check https://github.com/isa-group/botica/blob/main/docs/the-infrastructure-configuration-file.md
+# for a complete guide.
+
 broker:
   type: rabbitmq
-  username: "username"
-  password: "password"
+  username: ${RABBITMQ_USERNAME:username}
+  password: ${RABBITMQ_PASSWORD:password}
   port: 5672
 
 bots:
-  my-bot:
-    image: "my-bot-image"
+  data-generator:
+    # Example for https://github.com/isa-group/botica-seed-java/blob/main/src/main/java/com/example/examples/DataGeneratorBot.java
+    image: "my-data-generator-bot-image"
     mount:
-      - source: "path/to/host/file.extension"
-        target: "path/to/container/file.extension"
-      - source: "path/to/host/directory"
-        target: "path/to/container/directory"
-        createHostPath: true
-    publish:
-      key: "distributed_orders"
-      order: "execute_order"
+      - source: "data-sources"
+        target: "/app/sources"
     lifecycle:
       type: proactive
       initialDelay: 60
@@ -24,32 +23,25 @@ bots:
     environment:
       - KEY=VALUE
     instances:
-      bot-1: { }
-      bot-2: { }
-      bot-3:
-        lifecycle: # overriding lifecycle configuration
-          type: proactive
-          initialDelay: 30
-          period: 30
+      data-generator-1: { }
+      data-generator-2:
         environment: # these are combined with the already defined variables for the bot type
           - KEY2=VALUE2
-      bot-4:
-        environment:
-          - KEY3=VALUE3
+      data-generator-3: { }
 
-  my-other-bot:
-    image: "my-other-bot-image"
-    publish:
-      key: "another_key"
-      order: "execute_the_other_order"
+  data-processor:
+    # Example for https://github.com/isa-group/botica-seed-java/blob/main/src/main/java/com/example/examples/DataProcessingBot.java
+    image: "my-data-processor-bot-image"
+    mount:
+      - source: "results"
+        target: "/app/results"
+        createHostPath: true
     subscribe:
-      - key: "distributed_orders"
-        strategy: distributed # will be delivered to only one random instance
-      - key: "broadcast_orders"
-        strategy: broadcast # will be delivered to all instances
-    lifecycle:
+      - key: "raw_data"
+        strategy: distributed # Every message coming from "raw_data" will be delivered to only one random available instance
+    lifecycle: # Optional, as the default lifecycle is reactive
       type: reactive
-      order: "execute_order"
     instances:
-      bot-5: { }
-      bot-6: { }
+      data-processor-1: { }
+      data-processor-2: { }
+      data-processor-3: { }

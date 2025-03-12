@@ -12,3 +12,5 @@
 .botica/
 .botica-director-version
 botica-director.jar
+
+.env
