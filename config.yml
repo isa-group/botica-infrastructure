@@ -5,7 +5,7 @@
 
 broker:
   type: rabbitmq
-  username: ${RABBITMQ_USERNAME:username}
+  username: ${RABBITMQ_USERNAME:username} # taken from the RABBITMQ_USERNAME env variable, defaulting to "username"
   password: ${RABBITMQ_PASSWORD:password}
   port: 5672
 
@@ -13,6 +13,7 @@ bots:
   data-generator:
     # Example for https://github.com/isa-group/botica-seed-java/blob/main/src/main/java/com/example/examples/DataGeneratorBot.java
     image: "my-data-generator-bot-image"
+    replicas: 5
     mount:
       - source: "data-sources"
         target: "/app/sources"
@@ -20,18 +21,11 @@ bots:
       type: proactive
       initialDelay: 60
       period: 60
-    environment:
-      - KEY=VALUE
-    instances:
-      data-generator-1: { }
-      data-generator-2:
-        environment: # these are combined with the already defined variables for the bot type
-          - KEY2=VALUE2
-      data-generator-3: { }
 
   data-processor:
     # Example for https://github.com/isa-group/botica-seed-java/blob/main/src/main/java/com/example/examples/DataProcessingBot.java
     image: "my-data-processor-bot-image"
+    replicas: 2
     mount:
       - source: "results"
         target: "/app/results"
@@ -41,7 +35,25 @@ bots:
         strategy: distributed # Every message coming from "raw_data" will be delivered to only one random available instance
     lifecycle: # Optional, as the default lifecycle is reactive
       type: reactive
+    environment:
+      - DB_CONTAINER_NAME=database-1
+      - DB_USERNAME=${DATABASE_USERNAME}
+      - DB_PASSWORD=${DATABASE_PASSWORD}
     instances:
-      data-processor-1: { }
-      data-processor-2: { }
-      data-processor-3: { }
+      data-processor-3:
+        environment: # these are combined with the already defined variables for the bot type
+          - ANOTHER_KEY=VALUE
+      data-processor-4: { }
+
+  database:
+    image: "my-database-image"
+    replicas: 1
+    mount:
+      - source: "database-data"
+        target: "/app/data"
+        createHostPath: true
+    lifecycle:
+      type: unmanaged # it's not a bot, but a regular container
+    environment:
+      - DB_CONFIG_USERNAME=${DATABASE_USERNAME}
+      - DB_CONFIG_PASSWORD=${DATABASE_PASSWORD}
