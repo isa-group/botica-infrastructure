@@ -2,13 +2,6 @@
 
 # Check https://github.com/isa-group/botica/blob/main/docs/the-infrastructure-configuration-file.md
 # for a complete guide.
-
-broker:
-  type: rabbitmq
-  username: ${RABBITMQ_USERNAME:username} # taken from the RABBITMQ_USERNAME env variable, defaulting to "username"
-  password: ${RABBITMQ_PASSWORD:password}
-  port: 5672
-
 bots:
   data-generator:
     # Example for https://github.com/isa-group/botica-seed-java/blob/main/src/main/java/com/example/examples/DataGeneratorBot.java
